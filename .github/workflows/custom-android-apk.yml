@@ -1,0 +1,103 @@
+name: Custom-Android-APK
+
+# Builds the custom QGC Android APK on every push to a custom* branch
+# (or manually from the Actions tab via "Run workflow").
+# The finished APK is attached to the workflow run as a downloadable artifact.
+
+on:
+  push:
+    branches:
+      - 'custom*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        BuildType: [Release]
+
+    defaults:
+      run:
+        shell: bash
+
+    env:
+      ARTIFACT: QGroundControl-Custom.apk
+      QT_VERSION: 6.8.3
+      QT_ANDROID_ABIS: 'armeabi-v7a;arm64-v8a'
+      # Self-signed keystore generated below so the APK is installable directly.
+      QT_ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/custom_qgc.keystore
+      QT_ANDROID_KEYSTORE_ALIAS: CustomQGCKeyStore
+      QT_ANDROID_KEYSTORE_STORE_PASS: customqgc123
+      QT_ANDROID_KEYSTORE_KEY_PASS: customqgc123
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 1
+          fetch-tags: false
+
+      - name: Get all tags for correct version determination
+        working-directory: ${{ github.workspace }}
+        run: git fetch --all --tags -f --depth 1
+
+      - name: Initial Setup
+        uses: ./.github/actions/common
+
+      - name: Free Disk Space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: false
+          large-packages: false
+
+      - name: Install Qt for Android
+        uses: ./.github/actions/qt-android
+        with:
+          host: linux
+          arch: linux_gcc_64
+          version: ${{ env.QT_VERSION }}
+          abis: ${{ env.QT_ANDROID_ABIS }}
+          cpm-modules: ${{ runner.temp }}/shadow_build_dir/cpm_modules
+
+      - name: Generate signing keystore
+        run: |
+          keytool -genkeypair \
+            -keystore "${{ env.QT_ANDROID_KEYSTORE_PATH }}" \
+            -alias "${{ env.QT_ANDROID_KEYSTORE_ALIAS }}" \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass "${{ env.QT_ANDROID_KEYSTORE_STORE_PASS }}" \
+            -keypass "${{ env.QT_ANDROID_KEYSTORE_KEY_PASS }}" \
+            -dname "CN=CustomQGC, OU=QGC, O=QGC, L=NA, S=NA, C=US"
+
+      - name: Configure
+        working-directory: ${{ runner.temp }}/shadow_build_dir
+        run: ${{ env.QT_ROOT_DIR }}/bin/qt-cmake -S ${{ github.workspace }} -B . -G Ninja
+              -DCMAKE_BUILD_TYPE=${{ matrix.BuildType }}
+              -DCMAKE_WARN_DEPRECATED=FALSE
+              -DQT_ANDROID_ABIS="${{ env.QT_ANDROID_ABIS }}"
+              -DQT_ANDROID_BUILD_ALL_ABIS=OFF
+              -DQT_HOST_PATH="${{ env.QT_ROOT_DIR }}/../gcc_64"
+              -DQT_ANDROID_SIGN_APK=ON
+              -DQT_DEBUG_FIND_PACKAGE=ON
+              -DQGC_STABLE_BUILD=ON
+
+      - name: Build
+        working-directory: ${{ runner.temp }}/shadow_build_dir
+        run: cmake --build . --target all --config ${{ matrix.BuildType }}
+
+      - name: Collect APK
+        run: |
+          mkdir -p ${{ runner.temp }}/apk_out
+          cp ${{ runner.temp }}/shadow_build_dir/android-build/*.apk ${{ runner.temp }}/apk_out/
+          ls -la ${{ runner.temp }}/apk_out/
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: QGroundControl-Custom-APK
+          path: ${{ runner.temp }}/apk_out/*.apk
+          retention-days: 30
