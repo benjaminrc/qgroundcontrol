@@ -1,4 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
     <files-path name="files_path" path="/"/>
+    <!-- Custom build: app data (telemetry logs etc.) lives in the external
+         app-files dir on Android 11+, but in the shared-storage root on
+         Android 9/10 (Qt maps GenericDataLocation differently by SDK), and
+         on a removable SD card when that option is enabled. Export all three
+         roots through the provider so log sharing works everywhere. -->
+    <external-files-path name="external_files_path" path="/"/>
+    <external-path name="external_root" path="/"/>
+    <root-path name="root" path="/"/>
 </paths>

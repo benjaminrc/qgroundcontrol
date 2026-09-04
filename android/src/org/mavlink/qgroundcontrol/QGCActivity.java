@@ -224,6 +224,51 @@ public class QGCActivity extends QtActivity {
         }
     }
 
+    /**
+     * Custom build: opens the Android share sheet for a file in app storage
+     * (e.g. a telemetry log), letting the user send it to Google Drive, email,
+     * etc. Uses the FileProvider already declared in the manifest, which is the
+     * supported way to hand app-scoped files to other apps on modern Android.
+     *
+     * @param filePath absolute path to the file to share
+     * @param title    chooser dialog title
+     * @return true if the share sheet was launched
+     */
+    public static boolean shareFile(final String filePath, final String title) {
+        try {
+            final QGCActivity activity = m_instance;
+            if (activity == null) {
+                return false;
+            }
+            final File file = new File(filePath);
+            if (!file.exists()) {
+                Log.w(TAG, "shareFile: file does not exist: " + filePath);
+                return false;
+            }
+            final Uri uri = androidx.core.content.FileProvider.getUriForFile(
+                    activity, activity.getPackageName() + ".qtprovider", file);
+            final Intent intent = new Intent(Intent.ACTION_SEND);
+            intent.setType("application/octet-stream");
+            intent.putExtra(Intent.EXTRA_STREAM, uri);
+            intent.putExtra(Intent.EXTRA_SUBJECT, file.getName());
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        activity.startActivity(Intent.createChooser(intent, title));
+                    } catch (final Exception e) {
+                        Log.e(TAG, "shareFile: failed to launch chooser", e);
+                    }
+                }
+            });
+            return true;
+        } catch (final Exception e) {
+            Log.e(TAG, "shareFile failed", e);
+            return false;
+        }
+    }
+
     // Native C++ functions
     public native boolean nativeInit();
     public native void qgcLogDebug(final String message);

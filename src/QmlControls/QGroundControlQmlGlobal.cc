@@ -31,6 +31,7 @@
 #include "MavlinkActionManager.h"
 #include "EditPositionDialogController.h"
 #include "ParameterEditorController.h"
+#include "LogExportController.h"
 #include "QGCFileDialogController.h"
 #include "RCChannelMonitorController.h"
 #include "ScreenToolsController.h"
@@ -92,6 +93,7 @@ void QGroundControlQmlGlobal::registerQmlTypes()
     qmlRegisterType<EditPositionDialogController>       ("QGroundControl.Controllers",           1, 0, "EditPositionDialogController");
     qmlRegisterType<HorizontalFactValueGrid>            ("QGroundControl.Templates",             1, 0, "HorizontalFactValueGrid");
     qmlRegisterType<ParameterEditorController>          ("QGroundControl.Controllers",           1, 0, "ParameterEditorController");
+    qmlRegisterType<LogExportController>                ("QGroundControl.Controllers",           1, 0, "LogExportController");
     qmlRegisterType<QGCFileDialogController>            ("QGroundControl.Controllers",           1, 0, "QGCFileDialogController");
     qmlRegisterType<QGCMapCircle>                       ("QGroundControl.FlightMap",             1, 0, "QGCMapCircle");
     qmlRegisterType<QGCMapPalette>                      ("QGroundControl.Palette",               1, 0, "QGCMapPalette");

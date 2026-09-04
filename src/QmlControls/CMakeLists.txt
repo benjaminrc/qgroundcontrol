@@ -10,6 +10,8 @@ target_sources(${CMAKE_PROJECT_NAME}
         HorizontalFactValueGrid.h
         InstrumentValueData.cc
         InstrumentValueData.h
+        LogExportController.cc
+        LogExportController.h
         MavlinkAction.cc
         MavlinkAction.h
         MavlinkActionManager.cc

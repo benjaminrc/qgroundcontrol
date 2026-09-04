@@ -167,6 +167,71 @@ SettingsPage {
 
     SettingsGroupLayout {
         Layout.fillWidth:   true
+        heading:            qsTr("Flight Logs")
+        headingDescription: ScreenTools.isMobile ?
+                                qsTr("Telemetry logs are saved after each flight. Tap Share to send one to Google Drive, email, etc.") :
+                                qsTr("Telemetry logs are saved after each flight. Open Folder shows them on disk.")
+
+        LogExportController { id: logExportController }
+
+        FactCheckBoxSlider {
+            Layout.fillWidth:   true
+            text:               qsTr("Save telemetry log after each flight")
+            fact:               _settingsManager.mavlinkSettings.telemetrySave
+        }
+
+        QGCLabel {
+            Layout.fillWidth:   true
+            visible:            logExportController.logFiles.length === 0
+            text:               qsTr("No telemetry logs saved yet.")
+            color:              qgcPal.colorGrey
+        }
+
+        Repeater {
+            model: logExportController.logFiles
+
+            RowLayout {
+                Layout.fillWidth:   true
+                spacing:            ScreenTools.defaultFontPixelWidth
+
+                QGCLabel {
+                    Layout.fillWidth:   true
+                    text:               modelData
+                    elide:              Text.ElideMiddle
+                }
+
+                QGCLabel {
+                    text:   logExportController.logSizeText(modelData)
+                    color:  qgcPal.colorGrey
+                }
+
+                QGCButton {
+                    text:       ScreenTools.isMobile ? qsTr("Share") : qsTr("Open Folder")
+                    onClicked:  logExportController.shareLog(modelData)
+                }
+            }
+        }
+
+        RowLayout {
+            Layout.fillWidth:   true
+            spacing:            ScreenTools.defaultFontPixelWidth
+
+            QGCLabel {
+                Layout.fillWidth:   true
+                visible:            logExportController.logFiles.length >= 30
+                text:               qsTr("Showing the 30 most recent logs.")
+                color:              qgcPal.colorGrey
+            }
+
+            QGCButton {
+                text:       qsTr("Refresh")
+                onClicked:  logExportController.refresh()
+            }
+        }
+    }
+
+    SettingsGroupLayout {
+        Layout.fillWidth:   true
         heading:            qsTr("Live Tracking (Customer Stream)")
 
         FactCheckBoxSlider {
