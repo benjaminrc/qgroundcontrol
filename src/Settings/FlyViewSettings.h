@@ -36,4 +36,7 @@ public:
     DEFINE_SETTINGFACT(requestControlTimeout)
     DEFINE_SETTINGFACT(vehicleIconSizeScale)
     DEFINE_SETTINGFACT(vehicleIconColor)
+    DEFINE_SETTINGFACT(liveTrackingEnabled)
+    DEFINE_SETTINGFACT(liveTrackingServerUrl)
+    DEFINE_SETTINGFACT(liveTrackingInterval)
 };

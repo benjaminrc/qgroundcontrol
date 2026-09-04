@@ -214,6 +214,11 @@ Item {
         property real topEdgeCenterInset: visible ? y + height : 0
     }
 
+    // Custom build: streams position to the customer tracking page (runs even when this layer is hidden)
+    LiveTrackingUploader {
+        id: liveTrackingUploader
+    }
+
     // Custom build: vehicle icon quick-adjust tool and distance points panel
     ColumnLayout {
         id:                 customToolsColumn
@@ -226,6 +231,34 @@ Item {
 
         FlyViewVehicleIconTool {
             id: vehicleIconTool
+        }
+
+        // Live tracking status badge
+        Rectangle {
+            implicitWidth:  liveBadgeRow.implicitWidth + ScreenTools.defaultFontPixelWidth * 2
+            implicitHeight: liveBadgeRow.implicitHeight + ScreenTools.defaultFontPixelWidth
+            radius:         height / 4
+            visible:        liveTrackingUploader.trackingEnabled
+            color:          liveTrackingUploader.lastUploadOk ? "#1f7a1f" : "#8a1f1f"
+
+            RowLayout {
+                id:                 liveBadgeRow
+                anchors.centerIn:   parent
+                spacing:            ScreenTools.defaultFontPixelWidth / 2
+
+                Rectangle {
+                    width:  ScreenTools.defaultFontPixelHeight / 2
+                    height: width
+                    radius: width / 2
+                    color:  "white"
+                }
+
+                QGCLabel {
+                    text:       liveTrackingUploader.lastUploadOk ? qsTr("LIVE") : qsTr("NO LINK")
+                    color:      "white"
+                    font.bold:  true
+                }
+            }
         }
 
         FlyViewDistancePointsPanel {

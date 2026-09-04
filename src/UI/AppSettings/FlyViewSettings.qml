@@ -167,6 +167,30 @@ SettingsPage {
 
     SettingsGroupLayout {
         Layout.fillWidth:   true
+        heading:            qsTr("Live Tracking (Customer Stream)")
+
+        FactCheckBoxSlider {
+            Layout.fillWidth:   true
+            text:               qsTr("Stream position to tracking server")
+            fact:               _flyViewSettings.liveTrackingEnabled
+        }
+
+        LabelledFactTextField {
+            Layout.fillWidth:   true
+            label:              qsTr("Tracking Server URL")
+            fact:               _flyViewSettings.liveTrackingServerUrl
+            textFieldPreferredWidth: ScreenTools.defaultFontPixelWidth * 40
+        }
+
+        LabelledFactTextField {
+            Layout.fillWidth:   true
+            label:              qsTr("Upload Interval (seconds)")
+            fact:               _flyViewSettings.liveTrackingInterval
+        }
+    }
+
+    SettingsGroupLayout {
+        Layout.fillWidth:   true
         heading:            qsTr("Guided Commands")
         visible:            _guidedMinimumAltitude.visible || _guidedMaximumAltitude.visible ||
                             _maxGoToLocationDistance.visible || _forwardFlightGoToLocationLoiterRad.visible ||

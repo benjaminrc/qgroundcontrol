@@ -117,6 +117,28 @@
     "shortDesc":        "Color override for the vehicle icon shown on the map. Empty string uses the standard icon colors.",
     "type":             "string",
     "default":          ""
+},
+{
+    "name":             "liveTrackingEnabled",
+    "shortDesc":        "Stream vehicle position to the live tracking server so customers can follow the flight.",
+    "type":             "bool",
+    "default":          false
+},
+{
+    "name":             "liveTrackingServerUrl",
+    "shortDesc":        "Base URL of the live tracking database, e.g. https://your-project-default-rtdb.firebaseio.com/blimp",
+    "type":             "string",
+    "default":          ""
+},
+{
+    "name":             "liveTrackingInterval",
+    "shortDesc":        "Seconds between live tracking position uploads.",
+    "type":             "double",
+    "units":            "s",
+    "min":              1,
+    "max":              30,
+    "decimalPlaces":    0,
+    "default":          3
 }
 ]
 }

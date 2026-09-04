@@ -34,6 +34,7 @@ qt_add_qml_module(FlightDisplayModule
         FlyViewVideo.qml
         FlyViewWidgetLayer.qml
         GripperMenu.qml
+        LiveTrackingUploader.qml
         GuidedActionConfirm.qml
         GuidedActionGripper.qml
         GuidedActionLand.qml
