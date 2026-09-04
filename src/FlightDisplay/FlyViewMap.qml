@@ -52,6 +52,30 @@ FlightMap {
     property bool   _keepVehicleCentered:       pipMode ? true : false
     property bool   _saveZoomLevelSetting:      true
 
+    // Custom build: user-picked points for live horizontal distance readout
+    property alias  distancePointsModel:        _distancePointsModel
+
+    function addDistancePoint(coord) {
+        _distancePointsModel.append({ "lat": coord.latitude, "lon": coord.longitude })
+    }
+
+    function removeDistancePoint(index) {
+        _distancePointsModel.remove(index)
+    }
+
+    function clearDistancePoints() {
+        _distancePointsModel.clear()
+    }
+
+    function distancePointText(meters) {
+        var converted = QGroundControl.unitsConversion.metersToAppSettingsHorizontalDistanceUnits(meters)
+        return converted.toFixed(converted < 100 ? 1 : 0) + " " + QGroundControl.unitsConversion.appSettingsHorizontalDistanceUnitsString
+    }
+
+    ListModel {
+        id: _distancePointsModel
+    }
+
     function _adjustMapZoomForPipMode() {
         _saveZoomLevelSetting = false
         if (pipMode) {
@@ -282,6 +306,65 @@ FlightMap {
             z:              QGroundControl.zOrderVehicles
         }
     }
+    // Custom build: lines from the vehicle to each distance point
+    MapItemView {
+        model: _distancePointsModel
+        delegate: MapPolyline {
+            line.width: 2
+            line.color: "#ffb300"
+            z:          QGroundControl.zOrderMapItems
+            visible:    !pipMode && _activeVehicleCoordinate.isValid
+            path:       _activeVehicleCoordinate.isValid ? [ _activeVehicleCoordinate, QtPositioning.coordinate(model.lat, model.lon) ] : []
+        }
+    }
+
+    // Custom build: distance point markers with live horizontal distance labels
+    MapItemView {
+        model: _distancePointsModel
+        delegate: MapQuickItem {
+            coordinate:     QtPositioning.coordinate(model.lat, model.lon)
+            z:              QGroundControl.zOrderMapItems + 1
+            visible:        !pipMode
+            anchorPoint.x:  markerItem.markerSize / 2
+            anchorPoint.y:  markerItem.markerSize / 2
+
+            property real _distanceMeters: _activeVehicleCoordinate.isValid ? _activeVehicleCoordinate.distanceTo(QtPositioning.coordinate(model.lat, model.lon)) : Number.NaN
+
+            sourceItem: Item {
+                id:     markerItem
+                width:  markerSize
+                height: markerSize
+
+                property real markerSize: ScreenTools.defaultFontPixelHeight * 1.25
+
+                Rectangle {
+                    anchors.fill:   parent
+                    radius:         width / 2
+                    color:          "#ffb300"
+                    border.color:   "black"
+                    border.width:   1
+
+                    QGCLabel {
+                        anchors.centerIn:   parent
+                        text:               (index + 1).toString()
+                        color:              "black"
+                        font.bold:          true
+                        font.pointSize:     ScreenTools.smallFontPointSize
+                    }
+                }
+
+                QGCMapLabel {
+                    anchors.top:                parent.bottom
+                    anchors.topMargin:          2
+                    anchors.horizontalCenter:   parent.horizontalCenter
+                    map:                        _root
+                    font.pointSize:             ScreenTools.defaultFontPointSize
+                    text:                       isNaN(_distanceMeters) ? qsTr("--") : distancePointText(_distanceMeters)
+                }
+            }
+        }
+    }
+
     // Add distance sensor view
     MapItemView{
         model: QGroundControl.multiVehicleManager.vehicles
@@ -673,6 +756,9 @@ FlightMap {
 
             property var mapClickCoord
 
+            // Custom build: these panels are created on every map click, so clean up on close
+            onClosed: mapClickDropPanel.destroy()
+
             sourceComponent: Component {
                 ColumnLayout {
                     spacing: ScreenTools.defaultFontPixelWidth / 2
@@ -745,6 +831,25 @@ FlightMap {
                         }
                     }
 
+                    QGCButton {
+                        Layout.fillWidth:   true
+                        text:               qsTr("Measure distance here")
+                        onClicked: {
+                            mapClickDropPanel.close()
+                            _root.addDistancePoint(mapClickCoord)
+                        }
+                    }
+
+                    QGCButton {
+                        Layout.fillWidth:   true
+                        text:               qsTr("Clear distance points")
+                        visible:            _distancePointsModel.count > 0
+                        onClicked: {
+                            mapClickDropPanel.close()
+                            _root.clearDistancePoints()
+                        }
+                    }
+
                     ColumnLayout {
                         spacing: 0
                         QGCLabel { text: qsTr("Lat: %1").arg(mapClickCoord.latitude.toFixed(6)) }
@@ -756,10 +861,9 @@ FlightMap {
     }
 
     onMapClicked: (position) => {
-        if (!globals.guidedControllerFlyView.guidedUIVisible && 
-            (globals.guidedControllerFlyView.showGotoLocation || globals.guidedControllerFlyView.showOrbit ||
-             globals.guidedControllerFlyView.showROI || globals.guidedControllerFlyView.showSetHome ||
-             globals.guidedControllerFlyView.showSetEstimatorOrigin)) {
+        // Custom build: the click drop panel is always available (it hosts the distance point tool),
+        // not just when guided actions are shown
+        if (!globals.guidedControllerFlyView.guidedUIVisible) {
 
             position = Qt.point(position.x, position.y)
             var clickCoord = _root.toCoordinate(position, false /* clipToViewPort */)

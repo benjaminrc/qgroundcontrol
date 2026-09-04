@@ -38,6 +38,12 @@ MapQuickItem {
     property var    _map:           map
     property bool   _multiVehicle:  QGroundControl.multiVehicleManager.vehicles.count > 1
 
+    // Custom build: live-adjustable icon size/color (applies to real vehicles only, not ADSB traffic)
+    property var    _flyViewSettings:   QGroundControl.settingsManager.flyViewSettings
+    property real   _iconScaleFactor:   _adsbVehicle ? 1.0 : _flyViewSettings.vehicleIconSizeScale.rawValue
+    property string _iconColorOverride: _adsbVehicle ? "" : _flyViewSettings.vehicleIconColor.rawValue
+    property bool   _iconColorized:     _iconColorOverride !== ""
+
     sourceItem: Item {
         id:         vehicleItem
         width:      vehicleIcon.width
@@ -119,17 +125,34 @@ MapQuickItem {
             }
         }
 
-        Image {
-            id:                 vehicleIcon
-            source:             _adsbVehicle ? (alert ? "/qmlimages/AlertAircraft.svg" : "/qmlimages/AwarenessAircraft.svg") : vehicle.vehicleImageOpaque
-            mipmap:             true
-            width:              _root.size
-            sourceSize.width:   _root.size
-            fillMode:           Image.PreserveAspectFit
+        Item {
+            id:     vehicleIconHolder
+            width:  vehicleIcon.width
+            height: vehicleIcon.height
+
             transform: Rotation {
-                origin.x:       vehicleIcon.width  / 2
-                origin.y:       vehicleIcon.height / 2
+                origin.x:       vehicleIconHolder.width  / 2
+                origin.y:       vehicleIconHolder.height / 2
                 angle:          isNaN(heading) ? 0 : heading
+            }
+
+            Image {
+                id:                 vehicleIcon
+                source:             _adsbVehicle ? (alert ? "/qmlimages/AlertAircraft.svg" : "/qmlimages/AwarenessAircraft.svg") : vehicle.vehicleImageOpaque
+                mipmap:             true
+                width:              _root.size * _root._iconScaleFactor
+                sourceSize.width:   _root.size * _root._iconScaleFactor
+                fillMode:           Image.PreserveAspectFit
+                visible:            !_root._iconColorized
+            }
+
+            // Colorized copy of the icon, shown when a color override is active
+            MultiEffect {
+                anchors.fill:       vehicleIcon
+                source:             vehicleIcon
+                visible:            _root._iconColorized
+                colorization:       1.0
+                colorizationColor:  _root._iconColorized ? _root._iconColorOverride : "white"
             }
         }
 

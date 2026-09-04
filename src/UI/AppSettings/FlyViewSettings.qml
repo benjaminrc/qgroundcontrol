@@ -116,6 +116,57 @@ SettingsPage {
 
     SettingsGroupLayout {
         Layout.fillWidth:   true
+        heading:            qsTr("Vehicle Icon")
+
+        property Fact _vehicleIconSizeScale: _flyViewSettings.vehicleIconSizeScale
+        property Fact _vehicleIconColor:     _flyViewSettings.vehicleIconColor
+
+        id: _vehicleIconGroup
+
+        LabelledFactTextField {
+            Layout.fillWidth:   true
+            label:              qsTr("Icon Size Scale (0.4 - 3.0)")
+            fact:               _vehicleIconGroup._vehicleIconSizeScale
+        }
+
+        RowLayout {
+            Layout.fillWidth:   true
+            spacing:            ScreenTools.defaultFontPixelWidth
+
+            QGCLabel {
+                Layout.fillWidth:   true
+                text:               qsTr("Icon Color")
+            }
+
+            Repeater {
+                model: [ "", "#ffffff", "#ff3b30", "#ff9500", "#ffee00", "#2ecc40", "#00e5ff", "#3478f6", "#e040fb", "#000000" ]
+
+                Rectangle {
+                    width:          ScreenTools.defaultFontPixelHeight * 1.5
+                    height:         width
+                    radius:         width / 4
+                    color:          modelData === "" ? "transparent" : modelData
+                    border.width:   _vehicleIconGroup._vehicleIconColor.rawValue === modelData ? 2 : 1
+                    border.color:   _vehicleIconGroup._vehicleIconColor.rawValue === modelData ? qgcPal.colorGreen : qgcPal.text
+
+                    QGCLabel {
+                        anchors.centerIn:   parent
+                        visible:            modelData === ""
+                        text:               qsTr("Std")
+                        font.pointSize:     ScreenTools.smallFontPointSize
+                    }
+
+                    MouseArea {
+                        anchors.fill:   parent
+                        onClicked:      _vehicleIconGroup._vehicleIconColor.rawValue = modelData
+                    }
+                }
+            }
+        }
+    }
+
+    SettingsGroupLayout {
+        Layout.fillWidth:   true
         heading:            qsTr("Guided Commands")
         visible:            _guidedMinimumAltitude.visible || _guidedMaximumAltitude.visible ||
                             _maxGoToLocationDistance.visible || _forwardFlightGoToLocationLoiterRad.visible ||

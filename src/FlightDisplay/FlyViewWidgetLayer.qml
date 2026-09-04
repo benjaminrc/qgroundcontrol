@@ -214,6 +214,26 @@ Item {
         property real topEdgeCenterInset: visible ? y + height : 0
     }
 
+    // Custom build: vehicle icon quick-adjust tool and distance points panel
+    ColumnLayout {
+        id:                 customToolsColumn
+        anchors.margins:    _toolsMargin
+        anchors.left:       toolStrip.right
+        anchors.top:        mapScale.visible ? mapScale.bottom : parent.top
+        spacing:            _toolsMargin
+        z:                  QGroundControl.zOrderWidgets
+        visible:            mapControl.pipState.state === mapControl.pipState.fullState
+
+        FlyViewVehicleIconTool {
+            id: vehicleIconTool
+        }
+
+        FlyViewDistancePointsPanel {
+            id:         distancePointsPanel
+            mapControl: _root.mapControl
+        }
+    }
+
     Loader {
         id: preFlightChecklistLoader
         sourceComponent: preFlightChecklistPopup

@@ -102,6 +102,21 @@
     "min":          3,
     "max":          60,
     "default":      10
+},
+{
+    "name":             "vehicleIconSizeScale",
+    "shortDesc":        "Scale multiplier applied to the vehicle icon shown on the map.",
+    "type":             "double",
+    "min":              0.4,
+    "max":              3.0,
+    "decimalPlaces":    1,
+    "default":          1.0
+},
+{
+    "name":             "vehicleIconColor",
+    "shortDesc":        "Color override for the vehicle icon shown on the map. Empty string uses the standard icon colors.",
+    "type":             "string",
+    "default":          ""
 }
 ]
 }
