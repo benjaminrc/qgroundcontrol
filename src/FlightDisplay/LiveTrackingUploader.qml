@@ -56,6 +56,12 @@ Item {
         if (!vehicle || !vehicle.coordinate.isValid) {
             return
         }
+        // Telemetry link lost: stop streaming rather than re-stamping the last
+        // known position as fresh (customers would see a false LIVE badge).
+        if (vehicle.communicationLost) {
+            _root.lastUploadOk = false
+            return
+        }
         var base = _baseUrl()
         if (base === "") {
             return
