@@ -79,7 +79,7 @@ Item {
         }
 
         _put(base + "/current.json", payload, true)
-        _put(base + "/trail/" + now + ".json", { "lat": payload.lat, "lon": payload.lon, "ts": now }, false)
+        _put(base + "/trail/" + now + ".json", payload, false)   // full snapshot so archived live streams keep alt/speed/heading
     }
 
     function _put(url, obj, trackStatus) {
